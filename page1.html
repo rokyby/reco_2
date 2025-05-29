@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top 1000 Juegos de Steam</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- jQuery + DataTables -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-dt/css/jquery.dataTables.min.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">FullJuegos</div>
+    <nav>
+      <button class="menu-button">☰ Menú</button>
+      <div class="menu-content">
+        <input type="text" placeholder="Buscar..." id="buscadorCustom" />
+        <a href="#">Inicio</a>
+        <a href="#">Recomendaciones</a>
+        <a href="#">Favoritos</a>
+        <a href="#" id="toggleTheme">🌓 Modo Oscuro</a>
+        <a href="#" id="toggleView">🔁 Ver como tarjetas</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="contenido">
+    <h1>Top 1000 Juegos de Steam</h1>
+
+    <button id="btnRecomendar" class="btn-recomendaciones">
+      Recomendar Juegos
+    </button>
+
+    <div id="tablaVista">
+    <table id="steamTable" class="display">
+    <thead>
+        <tr>
+        <th>Seleccionar</th> <!-- NUEVA COLUMNA -->
+        <th>Nombre</th>
+        <th>Descripción corta</th>
+        <th>Categorías</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+    </table>
+    </div>
+
+    <div id="tarjetasVista" class="cards-container" style="display: none;"></div>
+  </main>
+
+ <script>
+  let modoTarjetas = false;
+  let juegosGlobales = [];
+
+  $(document).ready(function () {
+    function renderData(data) {
+      juegosGlobales = data;
+
+      let tableData = '';
+      let cardData = '';
+
+      data.forEach((game, index) => {
+        const categorias = Array.isArray(game.categories) ? game.categories.join(", ") : game.categories;
+        const nombre = game.name || game.title;
+
+        // Fila con checkbox
+        tableData += `<tr>
+          <td><input type="checkbox" class="check-juego" data-title="${nombre}" /></td>
+          <td>${nombre}</td>
+          <td>${game.short_description}</td>
+          <td>${categorias}</td>
+        </tr>`;
+
+        cardData += `
+          <div class="card">
+            <input type="checkbox" class="check-juego" data-title="${nombre}" />
+            <h3>${nombre}</h3>
+            <p><strong>Descripción:</strong> ${game.short_description}</p>
+            <p><strong>Categorías:</strong> ${categorias}</p>
+          </div>`;
+      });
+
+      $('#steamTable tbody').html(tableData);
+      $('#tarjetasVista').html(cardData);
+    }
+
+    // Cargar juegos desde JSON original
+    $.getJSON('top-1000-steam-games/steam_data.json', function (data) {
+      renderData(data);
+      const table = $('#steamTable').DataTable();
+
+      $('#buscadorCustom').on('keyup', function () {
+        table.search(this.value).draw();
+      });
+    });
+
+    // Botón para recomendar según checkboxes seleccionados
+    $('#btnRecomendar').on('click', function () {
+      const juegosSeleccionados = [];
+
+      $('.check-juego:checked').each(function () {
+        const titulo = $(this).data('title');
+        juegosSeleccionados.push({ title: titulo });
+      });
+
+      if (juegosSeleccionados.length === 0) {
+        alert("Por favor selecciona al menos un juego favorito.");
+        return;
+      }
+
+      $.ajax({
+        url: '/api/recomendar',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(juegosSeleccionados),
+        success: function (recomendaciones) {
+          renderData(recomendaciones);
+          const table = $('#steamTable').DataTable();
+          table.clear().rows.add(recomendaciones).draw();
+        },
+        error: function (xhr, status, error) {
+          alert("Error al obtener recomendaciones: " + error);
+        }
+      });
+    });
+
+    // Modo oscuro
+    $('#toggleTheme').on('click', () => {
+      $('body').toggleClass('dark');
+    });
+
+    // Vista tarjetas/tabla
+    $('#toggleView').on('click', () => {
+      modoTarjetas = !modoTarjetas;
+      $('#tablaVista').toggle(!modoTarjetas);
+      $('#tarjetasVista').toggle(modoTarjetas);
+      $('#toggleView').text(modoTarjetas ? '🔁 Ver como tabla' : '🔁 Ver como tarjetas');
+    });
+  });
+</script>
+</body>
+</html>

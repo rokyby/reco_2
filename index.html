@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 1000 Juegos de Steam</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables.net/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-dt/css/jquery.dataTables.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Top 1000 Juegos de Steam</h1>
+
+    <button onclick="location.href='page1.html'" style="margin-bottom: 20px;">
+        Ir a página de recomendaciones
+    </button>
+
+    <table id="steamTable" class="display">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>describcion larga</th>
+                <th>describcion corta</th>
+                <th>categorias</th>
+                <th>genres</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se insertarán los datos dinámicamente -->
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function() {
+            $.getJSON('top-1000-steam-games/steam_data.json', function(data) {
+                let tableData = '';
+                data.forEach(game => {
+                    tableData += `<tr>
+                        <td>${game.name}</td>  
+                        <td>${game.detailed_description}</td> 
+                        <td>${game.short_description}</td> 
+                        <td>${game.categories}</td>   
+                        <td>${game.genres}</td>                     
+                    </tr>`;
+                });
+                $('#steamTable tbody').html(tableData);
+                $('#steamTable').DataTable();
+            });
+        });
+    </script>
+</body>
+</html>

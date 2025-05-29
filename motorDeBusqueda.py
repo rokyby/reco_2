@@ -28,7 +28,7 @@ juegos_cod['gameId'] = juegos_cod.index
 
 
 # Ruta para recibir POST con juegos favoritos y devolver recomendaciones
-@app.route('/api/recomendar', methods=['POST'])
+@app.route('top-1000-steam-games\reco_output.json', methods=['POST'])
 def recomendar():
     data = request.get_json()
 

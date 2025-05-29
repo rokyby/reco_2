@@ -112,7 +112,7 @@
       }
 
       $.ajax({
-        url: 'top-1000-steam-games\reco_output.json',
+        url: '/api/recomendar',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(juegosSeleccionados),
